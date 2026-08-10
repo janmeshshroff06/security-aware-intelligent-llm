@@ -1,1 +1,1 @@
-# security-aware-intelligent-llm
+# Security Aware Intelligent LLM
