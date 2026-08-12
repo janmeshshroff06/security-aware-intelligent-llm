@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 from security.scanner import security_check
+from classification.classifier import classify_prompt
 
 app = FastAPI()
 
@@ -27,3 +28,7 @@ def health_check():
 @app.post("/security-check")
 def check_prompt(request: PromptRequest):
     return security_check(request.prompt)
+
+@app.post("/classify")
+def classify_prompt_endpoint(request: PromptRequest):
+    return classify_prompt(request.prompt)
