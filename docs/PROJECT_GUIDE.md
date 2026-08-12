@@ -128,7 +128,76 @@ The priority is always to restore the project to the agreed V1 flow rather than 
 
 ---
 
+## Security Check
+
+The first stage of the V1 pipeline is a rule-based prompt security check.
+
+The security logic is located in:
+
+`backend/security/scanner.py`
+
+The API layer calls this logic through:
+
+`POST /security-check`
+
+### Current V1 Behavior
+
+The security scanner:
+
+- Accepts a user prompt
+- Normalizes the prompt for matching
+- Checks for suspicious prompt-manipulation patterns
+- Returns a structured result containing:
+  - `allowed`
+  - `risk_level`
+  - `reason`
+
+Example safe result:
+
+```json
+{
+  "allowed": true,
+  "risk_level": "low",
+  "reason": "No security concerns detected"
+}
+```
+
+Example blocked result:
+
+```json
+{
+  "allowed": false,
+  "risk_level": "high",
+  "reason": "Suspicious prompt pattern detected: ignore previous instructions"
+}
+```
+
+### V1 Scope
+
+The current security layer is intentionally simple and rule-based.
+
+It does not yet use:
+
+- External moderation APIs
+- Machine-learning security classifiers
+- Advanced jailbreak detection
+- Authentication or user reputation systems
+
+The goal of V1 is to establish a clean security interface before prompt classification and model routing are implemented.
+
+---
+
 ## Current Status
+
+```text
+Prompt
+→ Security Check ✅
+→ Classification
+→ Score 3 Models
+→ Select Model
+→ Generate Response
+→ Explain Selection
+```
 
 ### Completed
 
@@ -139,18 +208,23 @@ The priority is always to restore the project to the agreed V1 flow rather than 
 - [x] FastAPI selected for backend
 - [x] GitHub repository created
 - [x] Initial folders created
-- [x] PROJECT_GUIDE.md created
+- [x] `PROJECT_GUIDE.md` created
+- [x] React + TypeScript frontend initialized
+- [x] FastAPI backend initialized
+- [x] Backend `/health` endpoint created
+- [x] Frontend connected to backend
+- [x] Python and Node.js `.gitignore` rules verified
+- [x] V1 security check implemented
+- [x] Security-check API endpoint created
+- [x] Security check tested with safe and suspicious prompts
+- [x] Security-check design documented
 
 ### In Progress
 
-- [ ] Initialize React + TypeScript frontend
+- [ ] Prompt classification
 
 ### Upcoming
 
-- [ ] Initialize FastAPI backend
-- [ ] Create `/health` endpoint
-- [ ] Connect frontend and backend
-- [ ] Implement security check
 - [ ] Implement prompt classifier
 - [ ] Implement model scoring
 - [ ] Implement model selection
