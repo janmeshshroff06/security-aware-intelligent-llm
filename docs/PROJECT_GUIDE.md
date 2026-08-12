@@ -187,12 +187,98 @@ The goal of V1 is to establish a clean security interface before prompt classifi
 
 ---
 
+## Prompt Classification
+
+The second stage of the V1 pipeline is a rule-based prompt classification system.
+
+The classification logic is located in:
+
+`backend/classification/classifier.py`
+
+The API layer exposes this logic through:
+
+`POST /classify`
+
+### Current V1 Behavior
+
+The classifier accepts a user prompt and returns:
+
+- `task_type`
+- `reasoning_level`
+
+Supported V1 task types:
+
+- `coding`
+- `math`
+- `writing`
+- `general`
+
+Supported reasoning levels:
+
+- `low`
+- `medium`
+- `high`
+
+The classifier currently uses simple keyword-based rules.
+
+Whole-word and phrase matching is used to reduce false positives. For example, the keyword `api` should not match the word `capital`.
+
+### Example
+
+Input:
+
+```text
+Help me debug this Python recursion problem
+```
+
+Output:
+
+```json
+{
+  "task_type": "coding",
+  "reasoning_level": "high"
+}
+```
+
+Another example:
+
+Input:
+
+```text
+Compare these two options
+```
+
+Output:
+
+```json
+{
+  "task_type": "general",
+  "reasoning_level": "medium"
+}
+```
+
+### V1 Scope
+
+The current classifier is intentionally simple and rule-based.
+
+It does not yet use:
+
+- Machine-learning classification
+- Embeddings
+- External classification APIs
+- Model routing
+- Database-backed rules
+
+The purpose of this stage is to produce a predictable structured classification result that can be used by the model-scoring system later in the V1 pipeline.
+
+---
+
 ## Current Status
 
 ```text
 Prompt
 → Security Check ✅
-→ Classification
+→ Classification ✅
 → Score 3 Models
 → Select Model
 → Generate Response
@@ -201,34 +287,18 @@ Prompt
 
 ### Completed
 
-- [x] Project purpose defined
-- [x] V1 scope frozen
-- [x] Architecture selected
-- [x] React + TypeScript selected for frontend
-- [x] FastAPI selected for backend
-- [x] GitHub repository created
-- [x] Initial folders created
-- [x] `PROJECT_GUIDE.md` created
-- [x] React + TypeScript frontend initialized
-- [x] FastAPI backend initialized
-- [x] Backend `/health` endpoint created
-- [x] Frontend connected to backend
-- [x] Python and Node.js `.gitignore` rules verified
-- [x] V1 security check implemented
-- [x] Security-check API endpoint created
-- [x] Security check tested with safe and suspicious prompts
-- [x] Security-check design documented
+- [x] Project foundation and development environment
+- [x] V1 security check
+- [x] V1 prompt classification
 
 ### In Progress
 
-- [ ] Prompt classification
+- None
 
 ### Upcoming
 
-- [ ] Implement prompt classifier
-- [ ] Implement model scoring
-- [ ] Implement model selection
-- [ ] Integrate 3 models
-- [ ] Generate response
-- [ ] Explain model selection
-- [ ] Complete V1 end-to-end testing
+- [ ] Model scoring
+- [ ] Model selection
+- [ ] Model integration and response generation
+- [ ] Routing explanation
+- [ ] V1 end-to-end testing
