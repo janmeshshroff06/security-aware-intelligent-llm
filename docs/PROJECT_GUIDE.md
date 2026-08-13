@@ -273,13 +273,124 @@ The purpose of this stage is to produce a predictable structured classification 
 
 ---
 
+## Model Scoring
+
+The third stage of the V1 pipeline is a rule-based model-scoring system.
+
+The model profiles are located in:
+
+`backend/scoring/models.py`
+
+The scoring logic is located in:
+
+`backend/scoring/scorer.py`
+
+The API layer exposes the scoring system through:
+
+`POST /score-models`
+
+### Current V1 Behavior
+
+The scoring system receives a prompt classification containing:
+
+- `task_type`
+- `reasoning_level`
+
+It then evaluates all three V1 model profiles using their predefined capabilities:
+
+- Coding
+- Math
+- Writing
+- General
+- Reasoning
+
+Each model receives a numerical score based on its task-specific capability and reasoning capability.
+
+### Reasoning Weights
+
+The current V1 scoring formula adjusts the importance of reasoning based on the classified reasoning level:
+
+- `low` → 75% task capability + 25% reasoning capability
+- `medium` → 50% task capability + 50% reasoning capability
+- `high` → 25% task capability + 75% reasoning capability
+
+### Example
+
+Classification:
+
+```json
+{
+  "task_type": "coding",
+  "reasoning_level": "high"
+}
+```
+
+The scorer returns structured scores for all three models:
+
+```json
+{
+  "scores": [
+    {
+      "model": "model_a",
+      "score": 95.0
+    },
+    {
+      "model": "model_b",
+      "score": 80.0
+    },
+    {
+      "model": "model_c",
+      "score": 75.0
+    }
+  ]
+}
+```
+
+The exact values depend on the current model profiles.
+
+### Model Profile Status
+
+The current model capability scores are V1 placeholder values used to develop and test the routing architecture.
+
+They are not claims about real-world model benchmark performance.
+
+These profiles can later be replaced or adjusted using documented capabilities, benchmark data, or project-specific evaluation results when real models are integrated.
+
+### Separation of Responsibilities
+
+The scoring system only calculates model scores.
+
+It does not:
+
+- Sort models
+- Select a model
+- Call an LLM
+- Generate a response
+
+Model selection is handled by the next stage of the V1 pipeline.
+
+### V1 Scope
+
+The current scoring system is intentionally simple, deterministic, and transparent.
+
+It does not yet use:
+
+- Machine-learning ranking
+- Real model API calls
+- FreeLLMAPI
+- Cost optimization
+- Latency measurements
+- Dynamic benchmarking
+
+---
+
 ## Current Status
 
 ```text
 Prompt
 → Security Check ✅
 → Classification ✅
-→ Score 3 Models
+→ Score 3 Models ✅
 → Select Model
 → Generate Response
 → Explain Selection
@@ -290,6 +401,7 @@ Prompt
 - [x] Project foundation and development environment
 - [x] V1 security check
 - [x] V1 prompt classification
+- [x] V1 model scoring
 
 ### In Progress
 
@@ -297,7 +409,6 @@ Prompt
 
 ### Upcoming
 
-- [ ] Model scoring
 - [ ] Model selection
 - [ ] Model integration and response generation
 - [ ] Routing explanation
