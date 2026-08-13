@@ -384,24 +384,119 @@ It does not yet use:
 
 ---
 
+## Model Selection Router
+
+The fourth stage of the V1 pipeline is deterministic model selection.
+
+The routing logic is located in:
+
+`backend/routing/router.py`
+
+The API layer exposes the router through:
+
+`POST /select-model`
+
+### Current V1 Behavior
+
+The router receives model scores produced by the scoring system.
+
+Example input:
+
+```json
+{
+  "scores": [
+    {
+      "model": "model_a",
+      "score": 95.0
+    },
+    {
+      "model": "model_b",
+      "score": 80.0
+    },
+    {
+      "model": "model_c",
+      "score": 75.0
+    }
+  ]
+}
+```
+
+The router selects the highest-scoring model and returns:
+
+```json
+{
+  "selected_model": "model_a",
+  "score": 95.0
+}
+```
+
+### Tie Handling
+
+If multiple models have the same highest score, V1 uses deterministic tie-breaking.
+
+The first highest-scoring model in the existing score order is selected.
+
+This ensures that the same input always produces the same routing decision.
+
+### Empty Score Handling
+
+If the router receives an empty score list, it raises an error instead of attempting to select a model.
+
+### Separation of Responsibilities
+
+The router only selects a model.
+
+It does not:
+
+- Calculate model scores
+- Call an LLM
+- Generate responses
+- Use FreeLLMAPI
+- Perform security checks
+- Classify prompts
+
+Each stage remains separate so the routing pipeline is easier to test, explain, and modify.
+
+### V1 Scope
+
+The current routing system is intentionally simple and deterministic.
+
+It does not yet use:
+
+- Cost optimization
+- Latency measurements
+- Provider availability
+- Randomized routing
+- Machine-learning selection
+- Real model API calls
+
+---
+
 ## Current Status
 
 ```text
 Prompt
-→ Security Check ✅
-→ Classification ✅
-→ Score 3 Models ✅
-→ Select Model
-→ Generate Response
-→ Explain Selection
+  ↓
+Security Check       ✅
+  ↓
+Classification       ✅
+  ↓
+Score 3 Models       ✅
+  ↓
+Select Model         ✅
+  ↓
+Generate Response
+  ↓
+Explain Selection
 ```
 
-### Completed
+#### Completed
 
 - [x] Project foundation and development environment
 - [x] V1 security check
 - [x] V1 prompt classification
 - [x] V1 model scoring
+- [x] V1 model selection
 
 ### In Progress
 
@@ -409,7 +504,6 @@ Prompt
 
 ### Upcoming
 
-- [ ] Model selection
 - [ ] Model integration and response generation
 - [ ] Routing explanation
 - [ ] V1 end-to-end testing
