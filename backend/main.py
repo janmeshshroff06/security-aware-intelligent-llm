@@ -5,6 +5,7 @@ from pydantic import BaseModel
 from security.scanner import security_check
 from classification.classifier import classify_prompt
 from scoring.scorer import score_models
+from routing.router import select_model
 
 app = FastAPI()
 
@@ -23,6 +24,14 @@ class PromptRequest(BaseModel):
 class ClassificationRequest(BaseModel):
     task_type: str
     reasoning_level: str
+
+class ModelScore(BaseModel):
+    model: str
+    score: float
+
+
+class ModelSelectionRequest(BaseModel):
+    scores: list[ModelScore]
 
 @app.get("/health")
 def health_check():
@@ -47,3 +56,14 @@ def score_model_profiles(request: ClassificationRequest):
     return {
         "scores": score_models(classification),
     }
+@app.post("/select-model")
+def select_model_endpoint(request: ModelSelectionRequest):
+    scores = [
+        {
+            "model": item.model,
+            "score": item.score,
+        }
+        for item in request.scores
+    ]
+
+    return select_model(scores)
